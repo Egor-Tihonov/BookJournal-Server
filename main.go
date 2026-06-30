@@ -14,15 +14,16 @@ func main() {
 	e := echo.New()
 
 	// Storage + external clients (swap stubs for real implementations).
-	bookRepo := db.NewBookRepo()
 	libraryRepo := db.NewLibraryRepo()
+	shelfRepo := db.NewShelfRepo()
 
-	// Services: BookService owns the catalog; LibraryService orchestrates shelves.
-	bookService := services.NewBookService(bookRepo, http.DefaultClient)
-	libraryService := services.NewLibraryService(bookService, libraryRepo)
+	// Services: LibraryService owns the global catalog; ShelfService orchestrates
+	// each user's personal shelf.
+	libraryService := services.NewLibraryService(libraryRepo, http.DefaultClient)
+	shelfService := services.NewShelfService(libraryService, shelfRepo)
 
 	// HTTP layer.
-	handlers := api.NewHandlers(libraryService)
+	handlers := api.NewHandlers(shelfService)
 	api.RegisterRoutes(e, handlers)
 
 	e.Logger.Fatal(e.Start(":8080"))

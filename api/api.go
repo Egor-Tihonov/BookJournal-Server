@@ -9,6 +9,6 @@ func RegisterRoutes(e *echo.Echo, h *Handlers) {
 
 	// TODO: middleware — authentication, authorization, request validation.
 
-	api.GET("/library", h.GetLibrary)
-	api.POST("/library", h.AddBook)
+	api.GET("/shelf", h.GetShelf)
+	api.POST("/book", h.AddBook)
 }

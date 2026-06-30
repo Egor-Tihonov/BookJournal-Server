@@ -12,14 +12,14 @@ import (
 
 // Handlers holds the dependencies the HTTP layer needs.
 type Handlers struct {
-	library *services.LibraryService
+	shelf *services.ShelfService
 }
 
-func NewHandlers(library *services.LibraryService) *Handlers {
-	return &Handlers{library: library}
+func NewHandlers(shelf *services.ShelfService) *Handlers {
+	return &Handlers{shelf: shelf}
 }
 
-// addBookRequest is the JSON body for POST /library.
+// addBookRequest is the JSON body for POST /book.
 type addBookRequest struct {
 	ISBN       string `json:"isbn"`
 	Title      string `json:"title"`
@@ -33,7 +33,7 @@ func (h *Handlers) AddBook(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusBadRequest, "invalid request body")
 	}
 
-	entry, err := h.library.AddBookToUserLibrary(c.Request().Context(), currentUserID(c), services.AddBookInput{
+	entry, err := h.shelf.AddBookToShelf(c.Request().Context(), currentUserID(c), services.AddBookInput{
 		ISBN:       req.ISBN,
 		Title:      req.Title,
 		Status:     models.ReadingStatus(req.Status),
@@ -49,10 +49,10 @@ func (h *Handlers) AddBook(c echo.Context) error {
 	return c.JSON(http.StatusCreated, entry)
 }
 
-func (h *Handlers) GetLibrary(c echo.Context) error {
-	entries, err := h.library.GetLibrary(c.Request().Context(), currentUserID(c))
+func (h *Handlers) GetShelf(c echo.Context) error {
+	entries, err := h.shelf.GetShelf(c.Request().Context(), currentUserID(c))
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, "could not load library")
+		return echo.NewHTTPError(http.StatusInternalServerError, "could not load shelf")
 	}
 	return c.JSON(http.StatusOK, entries)
 }

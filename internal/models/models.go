@@ -31,9 +31,10 @@ const (
 	StatusRead       ReadingStatus = "read"
 )
 
-// LibraryEntry is one book on a user's shelf (user_library) together with its
-// quotes and notes.
-type LibraryEntry struct {
+// ShelfEntry is one book on a user's shelf (user_shelf) together with its quotes
+// and notes. It represents the user's relationship with a book (status,
+// thoughts, dates) — not the book's catalog metadata, which lives in Book.
+type ShelfEntry struct {
 	ID         int64         `json:"id"`
 	UserID     int64         `json:"user_id"`
 	Book       Book          `json:"book"`

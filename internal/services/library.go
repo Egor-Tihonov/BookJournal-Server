@@ -1,51 +1,46 @@
 package services
 
 import (
-	"context"
-
 	"book-journal/internal/models"
+	"context"
+	"net/http"
 )
 
-// AddBookInput is what a user submits to put a book on their shelf.
-type AddBookInput struct {
-	ISBN       string
-	Title      string
-	Status     models.ReadingStatus
-	WhyReading string
-}
-
-// LibraryService orchestrates a user's shelf (user_library). It does not search
-// for books itself — it asks BookService to resolve the book, then records it
-// on the user's shelf.
+// LibraryService owns the global book catalog (books table). It resolves a book
+// by looking in our own catalog first and falling back to openlibrary. It knows
+// nothing about users or their shelves.
 type LibraryService struct {
-	books *BookService
-	repo  LibraryRepository
+	repo   LibraryRepository
+	client *http.Client
 }
 
-func NewLibraryService(books *BookService, repo LibraryRepository) *LibraryService {
-	return &LibraryService{books: books, repo: repo}
+func NewLibraryService(repo LibraryRepository, client *http.Client) *LibraryService {
+	return &LibraryService{repo: repo, client: client}
 }
 
-// AddBookToUserLibrary resolves the book (catalog → openlibrary) and adds it to
-// the user's shelf. Returns ErrBookNotFound if the book exists nowhere.
-func (s *LibraryService) AddBookToUserLibrary(ctx context.Context, userID int64, in AddBookInput) (*models.LibraryEntry, error) {
-	book, err := s.books.SearchBook(ctx, models.Book{ISBN: in.ISBN, Name: in.Title})
+// SearchBook выполняет поиск книги по ISBN или названию, сначала в базе данных, затем через внешний API OpenLibrary
+func (s *LibraryService) SearchBook(ctx context.Context, query models.Book) (*models.Book, error) {
+	book, err := s.dbSearch(ctx, query)
 	if err != nil {
-		return nil, err
+		return nil, err // реальная ошибка БД
 	}
-	if book == nil {
-		return nil, ErrBookNotFound
-	}
-
-	status := in.Status
-	if status == "" {
-		status = models.StatusWantToRead
+	if book != nil {
+		return book, nil // нашли в БД
 	}
 
-	return s.repo.Add(ctx, userID, book.ID, status, in.WhyReading)
+	return s.openLibrarySearch(ctx, query) // фоллбэк на внешний API
 }
 
-// GetLibrary returns every book on the user's shelf.
-func (s *LibraryService) GetLibrary(ctx context.Context, userID int64) ([]models.LibraryEntry, error) {
-	return s.repo.ListByUser(ctx, userID)
+// dbSearch выполняет поиск книги в базе данных по ISBN или названию
+func (s *LibraryService) dbSearch(ctx context.Context, book models.Book) (*models.Book, error) {
+	if book.ISBN != "" {
+		return s.repo.FindByISBN(ctx, book.ISBN)
+	}
+	return s.repo.FindByName(ctx, book.Name)
+}
+
+// openLibrarySearch выполняет поиск книги через внешний API OpenLibrary
+func (s *LibraryService) openLibrarySearch(ctx context.Context, book models.Book) (*models.Book, error) {
+	// https://openlibrary.org/api/books?bibkeys=ISBN:9781250319180&format=json&jscmd=data
+	return nil, nil
 }

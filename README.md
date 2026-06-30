@@ -43,9 +43,9 @@ v1.0.2
 | source     | text                    | `manual` / `openlibrary` — откуда пришла   |
 | created_at | timestamptz             |                                            |
 
-### user_library
+### user_shelf
 
-Полка/журнал пользователя: связь пользователь↔книга + статус и контекст чтения.
+Личная полка/журнал пользователя: связь пользователь↔книга + статус и контекст чтения.
 
 | поле        | тип                 | заметки                                            |
 | ----------- | ------------------- | -------------------------------------------------- |
@@ -67,7 +67,7 @@ UNIQUE(user_id, book_id) — нельзя добавить одну книгу �
 | поле       | тип                          | заметки           |
 | ---------- | ---------------------------- | ----------------- |
 | id         | bigserial PK                 |                   |
-| library_id | bigint FK→user_library(id)   | on delete cascade |
+| shelf_id   | bigint FK→user_shelf(id)     | on delete cascade |
 | text       | text, not null               |                   |
 | page       | int, nullable                |                   |
 | created_at | timestamptz                  |                   |
@@ -79,6 +79,6 @@ UNIQUE(user_id, book_id) — нельзя добавить одну книгу �
 | поле       | тип                          | заметки           |
 | ---------- | ---------------------------- | ----------------- |
 | id         | bigserial PK                 |                   |
-| library_id | bigint FK→user_library(id)   | on delete cascade |
+| shelf_id   | bigint FK→user_shelf(id)     | on delete cascade |
 | text       | text, not null               |                   |
 | created_at | timestamptz                  |                   |
