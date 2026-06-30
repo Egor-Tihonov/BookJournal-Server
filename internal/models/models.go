@@ -31,9 +31,14 @@ const (
 	StatusRead       ReadingStatus = "read"
 )
 
-// ShelfEntry is one book on a user's shelf (user_shelf) together with its quotes
-// and notes. It represents the user's relationship with a book (status,
-// thoughts, dates) — not the book's catalog metadata, which lives in Book.
+// ShelfEntry — одна книга на полке пользователя (user_shelf) вместе со статусом,
+// why_reading, датами, цитатами и мыслями.
+//
+// Почему "Entry", а не "Reading"/"ShelfBook": это один элемент (строка)
+// коллекции-полки — по аналогии с записью в журнале (JournalEntry/LogEntry).
+// Имя нейтрально к статусу и одинаково подходит для "хочу прочитать", "читаю" и
+// "прочитано" (имя через "Reading" хромало бы для ещё не начатой книги).
+// Это связь пользователя с книгой, а не метаданные самой книги — те живут в Book.
 type ShelfEntry struct {
 	ID         int64         `json:"id"`
 	UserID     int64         `json:"user_id"`
