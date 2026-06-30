@@ -18,18 +18,18 @@ type AddBookInput struct {
 // search for books itself — it asks LibraryService to resolve the book in the
 // global catalog, then records it on the user's shelf.
 type ShelfService struct {
-	library *LibraryService
-	repo    ShelfRepository
+	library   *LibraryService
+	shelfRepo ShelfRepository
 }
 
 func NewShelfService(library *LibraryService, repo ShelfRepository) *ShelfService {
-	return &ShelfService{library: library, repo: repo}
+	return &ShelfService{library: library, shelfRepo: repo}
 }
 
 // AddBookToShelf resolves the book (catalog → openlibrary) and adds it to the
 // user's shelf. Returns ErrBookNotFound if the book exists nowhere.
-func (s *ShelfService) AddBookToShelf(ctx context.Context, userID int64, in AddBookInput) (*models.ShelfEntry, error) {
-	book, err := s.library.SearchBook(ctx, models.Book{ISBN: in.ISBN, Name: in.Title})
+func (shelfService *ShelfService) AddBookToShelf(ctx context.Context, userID int64, in AddBookInput) (*models.ShelfEntry, error) {
+	book, err := shelfService.library.SearchBook(ctx, models.Book{ISBN: in.ISBN, Name: in.Title})
 	if err != nil {
 		return nil, err
 	}
@@ -42,10 +42,10 @@ func (s *ShelfService) AddBookToShelf(ctx context.Context, userID int64, in AddB
 		status = models.StatusWantToRead
 	}
 
-	return s.repo.Add(ctx, userID, book.ID, status, in.WhyReading)
+	return shelfService.shelfRepo.Add(ctx, userID, book.ID, status, in.WhyReading)
 }
 
 // GetShelf returns every book on the user's shelf.
-func (s *ShelfService) GetShelf(ctx context.Context, userID int64) ([]models.ShelfEntry, error) {
-	return s.repo.ListByUser(ctx, userID)
+func (shelfService *ShelfService) GetShelf(ctx context.Context, userID int64) ([]models.ShelfEntry, error) {
+	return shelfService.shelfRepo.ListByUser(ctx, userID)
 }
